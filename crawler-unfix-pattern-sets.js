@@ -15,7 +15,7 @@ async function fetchMainContent(url) {
   const html = data.contents;
 
   const parser = new DOMParser();
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const doc = parser.parseFromString(html, "text/html");
 
   const main = doc.querySelector('main');
   const content = main ? main.innerText.trim() : "Conteúdo principal não encontrado.";
@@ -36,7 +36,17 @@ async function generateJSON() {
     pages: results
   };
 
-  console.log(JSON.stringify(finalJson, null, 2));
+  // Atualiza o conteúdo da página
+  const pre = document.createElement('pre');
+  pre.innerText = JSON.stringify(finalJson, null, 2);
+  document.body.innerHTML = '';
+  document.body.appendChild(pre);
+
+  // Define o content-type para application/json usando JavaScript
+  const meta = document.createElement('meta');
+  meta.setAttribute('http-equiv', 'Content-Type');
+  meta.setAttribute('content', 'application/json; charset=UTF-8');
+  document.head.appendChild(meta);
 }
 
 generateJSON();
