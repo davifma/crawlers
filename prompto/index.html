@@ -23,7 +23,7 @@
         if (item.type === 'file') {
           const extension = item.name.split('.').pop().toLowerCase();
 
-          const ignoredExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'yml', 'yaml'];
+          const ignoredExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'yml', 'yaml', 'pdf'];
           if (ignoredExtensions.includes(extension)) {
             continue;
           }
