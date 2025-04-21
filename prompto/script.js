@@ -1,53 +1,66 @@
 async function fetchGitHubFiles(owner, repo, path = '') {
-  const listUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
-  const listResponse = await fetch(listUrl);
-  const files = await listResponse.json();
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar ${apiUrl}: ${response.statusText}`);
+  }
 
-  const results = [];
+  const items = await response.json();
+  const files = [];
 
-  for (const file of files) {
-    if (file.type === 'file') {
-      const ext = file.name.split('.').pop().toLowerCase();
+  for (const item of items) {
+    if (item.type === 'file') {
+      const extension = item.name.split('.').pop().toLowerCase();
 
-      // Ignorar arquivos de imagem
-      const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'yml'];
-      if (imageExtensions.includes(ext)) {
-        continue; // pula para o próximo
+      const ignoredExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'yml', 'yaml'];
+      if (ignoredExtensions.includes(extension)) {
+        continue; // Ignorar imagens e arquivos yml
       }
 
-      const contentResponse = await fetch(file.download_url);
-      const contentText = await contentResponse.text();
+      try {
+        const contentResponse = await fetch(item.download_url);
+        if (contentResponse.ok) {
+          const content = await contentResponse.text();
+          files.push({
+            filename: item.name,
+            path: item.path,
+            content: content
+          });
+        }
+      } catch (error) {
+        console.error(`Erro ao baixar arquivo ${item.path}:`, error);
+      }
 
-      results.push({
-        filename: file.name,
-        path: file.path,
-        content: contentText
-      });
-    } else if (file.type === 'dir') {
-      // Se for diretório, chama a função recursivamente
-      const subdirResults = await fetchGitHubFiles(owner, repo, file.path);
-      results.push(...subdirResults);
+    } else if (item.type === 'dir') {
+      // Recursivamente buscar subdiretórios
+      const subFiles = await fetchGitHubFiles(owner, repo, item.path);
+      files.push(...subFiles);
     }
   }
 
-  return results;
+  return files;
 }
 
 async function startCrawler() {
-  const owner = 'davifma';   // <<-- Trocar aqui
-  const repo = 'prompto';     // <<-- Trocar aqui
+  const owner = 'davifma';    // Trocar aqui pelo dono do repositório
+  const repo = 'prompto';      // Trocar aqui pelo nome do repositório
 
-  const results = await fetchGitHubFiles(owner, repo);
+  try {
+    const files = await fetchGitHubFiles(owner, repo);
 
-  const finalJson = {
-    repository: `${owner}/${repo}`,
-    extractedAt: new Date().toISOString(),
-    files: results
-  };
+    const finalJson = {
+      repository: `${owner}/${repo}`,
+      extractedAt: new Date().toISOString(),
+      files: files
+    };
 
-  // Exibe JSON na página
-  document.body.innerText = JSON.stringify(finalJson, null, 2);
+    // Exibe o JSON completo na página
+    document.body.innerText = JSON.stringify(finalJson, null, 2);
+  } catch (error) {
+    console.error('Erro geral:', error);
+    document.body.innerText = `Erro: ${error.message}`;
+  }
 }
 
 startCrawler();
