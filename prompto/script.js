@@ -11,7 +11,7 @@ async function fetchGitHubFiles(owner, repo, path = '') {
       const ext = file.name.split('.').pop().toLowerCase();
 
       // Ignorar arquivos de imagem
-      const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp'];
+      const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'yml'];
       if (imageExtensions.includes(ext)) {
         continue; // pula para o próximo
       }
