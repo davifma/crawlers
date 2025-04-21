@@ -1,45 +1,42 @@
-async function fetchAndParseUnfix() {
-  const url = "https://unfix.com/all-pattern-sets";
-  const output = document.getElementById('output');
+const pages = [
+  "https://unfix.com/decision-patterns",
+  "https://unfix.com/goal-setting-patterns",
+  "https://unfix.com/process-and-growth-patterns",
+  "https://unfix.com/structural-pattern",
+  "https://unfix.com/teaming-patterns"
+];
 
-  try {
-    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    const data = await response.json();
-    const html = data.contents;
+// Proxy para driblar CORS
+const proxy = "https://api.allorigins.win/get?url=";
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
+async function fetchMainContent(url) {
+  const response = await fetch(proxy + encodeURIComponent(url));
+  const data = await response.json();
+  const html = data.contents;
 
-    // Remove elementos que você não quer: header, footer, nav, aside
-    const selectorsToRemove = ['header', 'footer', 'nav', 'aside', '.site-header', '.site-footer', '.menu', '.navigation'];
-    selectorsToRemove.forEach(selector => {
-      const elements = doc.querySelectorAll(selector);
-      elements.forEach(el => el.remove());
-    });
+  const parser = new DOMParser();
+  const doc = new DOMParser().parseFromString(html, "text/html");
 
-    // Remove todos os links <a>, mas mantém o texto interno
-    const links = doc.querySelectorAll('a');
-    links.forEach(link => {
-      const span = document.createElement('span');
-      span.innerHTML = link.innerHTML; // preserva o texto interno
-      link.parentNode.replaceChild(span, link);
-    });
+  const main = doc.querySelector('main');
+  const content = main ? main.innerText.trim() : "Conteúdo principal não encontrado.";
 
-    // Agora, pega só o corpo do conteúdo principal
-    const mainContent = doc.querySelector('main') || doc.body; // fallback para <body> se não tiver <main>
-    const textContent = mainContent.innerText.trim();
-
-    // Cria o JSON final
-    const jsonOutput = {
-      source: url,
-      extractedAt: new Date().toISOString(),
-      content: textContent
-    };
-
-    output.textContent = JSON.stringify(jsonOutput, null, 2);
-
-  } catch (error) {
-    console.error('Erro ao buscar conteúdo:', error);
-    output.textContent = 'Erro ao buscar conteúdo.';
-  }
+  return { url, content };
 }
+
+async function generateJSON() {
+  const results = [];
+
+  for (const page of pages) {
+    const data = await fetchMainContent(page);
+    results.push(data);
+  }
+
+  const finalJson = {
+    extractedAt: new Date().toISOString(),
+    pages: results
+  };
+
+  console.log(JSON.stringify(finalJson, null, 2));
+}
+
+generateJSON();
