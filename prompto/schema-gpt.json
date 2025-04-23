@@ -1,0 +1,69 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Alpha (proMpto)",
+    "description": "Busca e prioriza conteúdos sobre o uso de IA a partir do JSON oficial hospedado no repositório Prompto.",
+    "version": "v1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://davifma.github.io/crawlers/prompto"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "carregarConteudosIAPrompto",
+        "summary": "Carrega o JSON de conteúdos IA Prompto",
+        "description": "Recupera todos os conteúdos estruturados sobre o uso de IA presentes no repositório Prompto para respostas priorizadas.",
+        "responses": {
+          "200": {
+            "description": "Conteúdo JSON retornado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "repository": {
+                      "type": "string",
+                      "description": "Nome do repositório."
+                    },
+                    "extractedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Data e hora da extração."
+                    },
+                    "files": {
+                      "type": "array",
+                      "description": "Lista dos arquivos extraídos.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Nome do arquivo."
+                          },
+                          "path": {
+                            "type": "string",
+                            "description": "Caminho do arquivo dentro do repositório."
+                          },
+                          "content": {
+                            "type": "string",
+                            "description": "Conteúdo textual do arquivo."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}
